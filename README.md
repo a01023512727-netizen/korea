@@ -25,13 +25,43 @@ python -m http.server 8080
 
 브라우저에서 `http://localhost:8080` 접속
 
+## Android 앱 설치
+
+### APK 다운로드 (가장 쉬움)
+
+GitHub Actions가 자동 빌드한 APK:
+**https://github.com/a01023512727-netizen/korea/releases/tag/apk-latest**
+
+또는 [Actions](https://github.com/a01023512727-netizen/korea/actions) → **Build Android APK** → Artifacts
+
+### 폰에 설치
+
+1. APK 다운로드 (`hanja-memo.apk`)
+2. **설정 → 보안 → 알 수 없는 앱 설치** 허용
+3. APK 탭 → 설치
+
+### PC에서 직접 빌드 + USB 설치
+
+```powershell
+# 빌드
+powershell -ExecutionPolicy Bypass -File scripts/build-apk.ps1
+
+# USB 연결 후 설치 (USB 디버깅 필요)
+powershell -ExecutionPolicy Bypass -File scripts/install-apk.ps1
+```
+
+자세한 내용: [android/README.md](android/README.md)
+
+### PWA (앱 없이 홈 화면 추가)
+
+Chrome → [사이트](https://a01023512727-netizen.github.io/korea/) → **⋮ → 앱 설치**
+
 ## 기능
 
-- Google 시트 **자동 동기화** (새로고침 버튼)
-- 플래시카드: 한자 → 한글 + 뜻 + 뜻2
-- 학습 상태 저장 (외움 / 다시 볼 것)
-- 목록 보기 + 검색/필터
-- 오프라인 캐시 (마지막 동기화 데이터 유지)
+- Google 시트 **자동 동기화**
+- 한자 / 한글 / 뜻 보기 모드
+- 정답 보기, 섞기, 이전/다음
+- PWA + Android 앱 지원
 
 ## 시트 형식
 

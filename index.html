@@ -2,7 +2,15 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#c45c26">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="한자노트">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
   <title>한자 암기 노트</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,107 +20,54 @@
 <body>
   <div class="app">
     <header class="header">
-      <div class="header-top">
-        <h1>한자 암기 노트</h1>
-        <div class="header-actions">
-          <button class="btn btn-secondary" id="refreshBtn" type="button">↻ 새로고침</button>
-          <label class="btn btn-secondary import-btn">
-            CSV
-            <input type="file" id="csvInput" accept=".csv" hidden>
-          </label>
-          <button class="btn btn-secondary" id="listToggle" type="button">목록 보기</button>
+      <p class="counter" id="progressText">0 / 0</p>
+      <div class="mode-toolbar">
+        <div class="mode-buttons" id="modeButtons">
+          <button class="btn btn-mode active" type="button" data-mode="hanja">한자 보기</button>
+          <button class="btn btn-mode" type="button" data-mode="hangul">한글 보기</button>
+          <button class="btn btn-mode" type="button" data-mode="meaning">뜻 보기</button>
         </div>
+        <button class="btn btn-shuffle" id="shuffleBtn" type="button">섞기</button>
       </div>
-      <p class="sync-status sync-loading" id="syncStatus">Google 시트 동기화 중…</p>
-      <div class="progress-bar">
-        <div class="progress-fill" id="progressFill"></div>
-      </div>
-      <p class="progress-text" id="progressText">0 / 0</p>
     </header>
 
     <main class="main">
-      <!-- 카드 모드 -->
       <section class="card-mode" id="cardMode">
         <div class="card-container">
-          <div class="card" id="flashcard" tabindex="0">
-            <div class="card-face card-front">
-              <span class="card-number" id="cardNumber"></span>
-              <p class="hanja" id="cardHanja"></p>
-              <p class="hint">클릭하거나 Space 키로 뒤집기</p>
-            </div>
-            <div class="card-face card-back">
-              <span class="card-number" id="cardNumberBack"></span>
-              <p class="hangul" id="cardHangul"></p>
-              <div class="meanings">
-                <p class="meaning" id="cardMeaning"></p>
-                <p class="meaning meaning-sub" id="cardMeaning2"></p>
+          <div class="card" id="flashcard">
+            <span class="card-number" id="cardNumber"></span>
+
+            <div class="card-question" id="questionArea"></div>
+
+            <div class="card-answer hidden" id="answerArea">
+              <p class="answer-hanja" id="answerHanja"></p>
+              <p class="answer-hangul" id="answerHangul"></p>
+              <div class="answer-meanings">
+                <div class="answer-row" id="answerMeaningRow">
+                  <span class="answer-label">뜻</span>
+                  <p class="answer-text" id="answerMeaning"></p>
+                </div>
+                <div class="answer-row hidden" id="answerMeaning2Row">
+                  <span class="answer-label">뜻2</span>
+                  <p class="answer-text" id="answerMeaning2"></p>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
         <nav class="card-nav">
-          <button class="btn btn-nav" id="prevBtn" type="button" aria-label="이전">← 이전</button>
-          <button class="btn btn-primary" id="shuffleBtn" type="button">섞기</button>
-          <button class="btn btn-nav" id="nextBtn" type="button" aria-label="다음">다음 →</button>
+          <button class="btn btn-nav" id="prevBtn" type="button">← 이전</button>
+          <button class="btn btn-nav" id="nextBtn" type="button">다음 →</button>
         </nav>
 
-        <div class="known-actions">
-          <button class="btn btn-known" id="knownBtn" type="button">✓ 외움</button>
-          <button class="btn btn-review" id="reviewBtn" type="button">↻ 다시 볼 것</button>
-        </div>
-      </section>
-
-      <!-- 목록 모드 -->
-      <section class="list-mode hidden" id="listMode">
-        <div class="list-toolbar">
-          <input type="search" id="searchInput" class="search-input" placeholder="한자, 한글, 뜻 검색...">
-          <select id="filterSelect" class="filter-select">
-            <option value="all">전체</option>
-            <option value="known">외운 것</option>
-            <option value="review">다시 볼 것</option>
-            <option value="new">미학습</option>
-          </select>
-        </div>
-        <div class="table-wrap">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>번호</th>
-                <th>한자</th>
-                <th>한글</th>
-                <th>뜻</th>
-                <th>뜻2</th>
-                <th>상태</th>
-              </tr>
-            </thead>
-            <tbody id="tableBody"></tbody>
-          </table>
-        </div>
+        <button class="btn btn-reveal" id="revealBtn" type="button">정답 보기</button>
       </section>
     </main>
-
-    <aside class="setup-guide hidden" id="setupGuide">
-      <h2>연동 안 될 때</h2>
-      <p>시트가 <strong>링크가 있는 모든 사용자(뷰어)</strong>에게 공개되어 있는지 확인하세요.</p>
-      <details>
-        <summary>비공개 시트 — Apps Script 사용</summary>
-        <ol>
-          <li>확장 프로그램 → Apps Script → <code>google-apps-script.gs</code> 붙여넣기</li>
-          <li>배포 → 웹 앱 (액세스: 모든 사용자)</li>
-          <li>URL을 <code>config.js</code>의 <code>APPS_SCRIPT_URL</code>에 입력</li>
-        </ol>
-      </details>
-    </aside>
-
-    <footer class="footer">
-      <p>← → 이동 · Space 뒤집기 · Google 시트에서 자동 동기화</p>
-    </footer>
   </div>
 
   <div class="loading-overlay" id="loadingOverlay">
     <div class="spinner"></div>
-    <p>Google 시트 불러오는 중…</p>
   </div>
 
   <div class="toast hidden" id="toast"></div>
@@ -120,5 +75,12 @@
   <script src="config.js"></script>
   <script src="sheets.js"></script>
   <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+  </script>
 </body>
 </html>

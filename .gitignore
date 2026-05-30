@@ -1,3 +1,17 @@
 .DS_Store
 Thumbs.db
 *.log
+
+# Android
+android/.gradle/
+android/.idea/
+android/local.properties
+android/**/build/
+android/**/*.iml
+android/.DS_Store
+android/captures/
+android/*.apk
+android/*.aab
+
+# Built APK (download from GitHub Releases)
+dist/
