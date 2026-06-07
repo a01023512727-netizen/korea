@@ -24,7 +24,17 @@ function resolveColumnMap(headers) {
 
   if (hasHanja) return colMap;
 
-  return { number: 0, hanja: 1, hangul: 2, meaning: 3, meaning2: 4 };
+  const hasGroup = headers.some((h) => h.includes('그룹'));
+  if (hasGroup) {
+    return { group: 0, number: 1, hanja: 2, hangul: 3, meaning: 4, meaning2: 5 };
+  }
+
+  return { group: -1, number: 0, hanja: 1, hangul: 2, meaning: 3, meaning2: 4 };
+}
+
+function readGroup(cols, colMap) {
+  if (colMap.group < 0) return '';
+  return String(cols[colMap.group] || '').trim();
 }
 
 function rowsToItems(headers, rows) {
@@ -36,6 +46,7 @@ function rowsToItems(headers, rows) {
       if (!hanja) return null;
 
       return {
+        group: readGroup(cols, colMap),
         id: String(cols[colMap.number] || i + 1).trim(),
         hanja,
         hangul: String(cols[colMap.hangul] || '').trim(),
@@ -53,6 +64,7 @@ function objectsToItems(objects) {
       if (values.every(v => !String(v).trim())) return null;
 
       return {
+        group: String(row['그룹'] ?? row.group ?? '').trim(),
         id: String(row['번호'] ?? row.number ?? i + 1),
         hanja: String(row['한자'] ?? ''),
         hangul: String(row['한글'] ?? ''),

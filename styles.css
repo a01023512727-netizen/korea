@@ -61,6 +61,34 @@ body {
   margin-bottom: 12px;
 }
 
+.group-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.group-label {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.group-select {
+  flex: 1;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  min-height: 44px;
+  cursor: pointer;
+}
+
 .mode-toolbar {
   display: flex;
   flex-direction: column;

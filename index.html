@@ -21,6 +21,12 @@
   <div class="app">
     <header class="header">
       <p class="counter" id="progressText">0 / 0</p>
+      <div class="group-toolbar hidden" id="groupToolbar">
+        <label class="group-label" for="groupSelect">그룹</label>
+        <select class="group-select" id="groupSelect" aria-label="그룹 선택">
+          <option value="all">전체</option>
+        </select>
+      </div>
       <div class="mode-toolbar">
         <div class="mode-buttons" id="modeButtons">
           <button class="btn btn-mode active" type="button" data-mode="hanja">한자 보기</button>
