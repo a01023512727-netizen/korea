@@ -43,8 +43,26 @@
         <span class="menu-card-arrow" aria-hidden="true">→</span>
       </a>
     </nav>
+
+    <section class="menu-history-section hidden" id="menuExamHistorySection" aria-label="기출 풀이 기록">
+      <h2 class="menu-history-heading">기출 풀이 기록</h2>
+      <div id="menuExamHistory"></div>
+    </section>
   </div>
 
+  <script src="exam-history.js"></script>
+  <script>
+    (function initMenuExamHistory() {
+      const section = document.getElementById('menuExamHistorySection');
+      const container = document.getElementById('menuExamHistory');
+      if (!section || !container) return;
+      const count = renderExamHistoryList(container, {
+        limit: 5,
+        examId: EXAM_ID,
+      });
+      if (count > 0) section.classList.remove('hidden');
+    })();
+  </script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {

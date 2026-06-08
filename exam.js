@@ -4,6 +4,16 @@ const examTitle = document.getElementById('examTitle');
 const examSubtitle = document.getElementById('examSubtitle');
 const examMeta = document.getElementById('examMeta');
 const examList = document.getElementById('examList');
+const examHistoryEl = document.getElementById('examHistory');
+const examCompleteBanner = document.getElementById('examCompleteBanner');
+
+let examState = {
+  total: 0,
+  answered: 0,
+  correct: 0,
+  title: '',
+  saved: false,
+};
 
 function showToast(message) {
   toast.textContent = message;
@@ -82,10 +92,63 @@ function renderExplanationBody(container, formatted) {
   container.appendChild(detail);
 }
 
+function updateExamProgress() {
+  if (!examState.total) return;
+  const { answered, correct, total } = examState;
+  if (answered >= total) {
+    examMeta.textContent = `완료 · ${correct}개 맞음 / ${total}문항 (${formatExamScore(correct, total)}점)`;
+    return;
+  }
+  examMeta.textContent = `진행 ${answered}/${total} · 맞춤 ${correct}개 · 선택지를 눌러 정답을 확인하세요`;
+}
+
+function renderExamHistoryPanel() {
+  if (!examHistoryEl) return;
+  renderExamHistoryList(examHistoryEl, {
+    examId: EXAM_ID,
+    emptyText: '아직 완료한 풀이 기록이 없습니다. 80문항을 모두 풀면 이 기기에 저장됩니다.',
+  });
+}
+
+function showCompletionBanner(entry) {
+  if (!examCompleteBanner) return;
+  const score = formatExamScore(entry.correct, entry.total);
+  examCompleteBanner.classList.remove('hidden');
+  examCompleteBanner.textContent = `풀이 완료! ${formatExamDate(entry.completedAt)} · ${score}점 (${entry.correct}/${entry.total}개 맞음)`;
+  showToast('풀이 기록이 이 기기에 저장되었습니다.');
+}
+
+function recordAnswer(questionNumber, isCorrect) {
+  examState.answered += 1;
+  if (isCorrect) examState.correct += 1;
+  updateExamProgress();
+
+  if (examState.answered < examState.total || examState.saved) return;
+
+  examState.saved = true;
+  const entry = saveExamHistoryEntry({
+    title: examState.title,
+    correct: examState.correct,
+    total: examState.total,
+  });
+  showCompletionBanner(entry[0]);
+  renderExamHistoryPanel();
+}
+
 function renderExam(data, answersMap) {
+  examState = {
+    total: data.questions.length,
+    answered: 0,
+    correct: 0,
+    title: data.title,
+    saved: false,
+  };
+
   examTitle.textContent = data.title;
   examSubtitle.textContent = data.subtitle || '';
-  examMeta.textContent = `총 ${data.questions.length}문항 · 선택지를 눌러 정답을 확인하세요`;
+  updateExamProgress();
+  renderExamHistoryPanel();
+  if (examCompleteBanner) examCompleteBanner.classList.add('hidden');
 
   let lastSubject = '';
   const fragment = document.createDocumentFragment();
@@ -132,7 +195,7 @@ function renderExam(data, answersMap) {
 
       btn.addEventListener('click', () => {
         if (!meta || article.classList.contains('answered')) return;
-        handleAnswer(article, meta, optionNum, resultBanner, explanationPanel, options);
+        handleAnswer(article, meta, optionNum, resultBanner, explanationPanel, options, q.number);
       });
 
       options.appendChild(btn);
@@ -149,11 +212,12 @@ function renderExam(data, answersMap) {
   examList.replaceChildren(fragment);
 }
 
-function handleAnswer(article, meta, selected, resultBanner, explanationPanel, optionsEl) {
+function handleAnswer(article, meta, selected, resultBanner, explanationPanel, optionsEl, questionNumber) {
   const correct = meta.answer;
   const isCorrect = selected === correct;
 
   article.classList.add('answered');
+  recordAnswer(questionNumber, isCorrect);
   resultBanner.classList.remove('hidden');
   resultBanner.classList.add(isCorrect ? 'exam-result-correct' : 'exam-result-wrong');
   resultBanner.textContent = isCorrect

@@ -25,7 +25,13 @@
       <h1 class="exam-title" id="examTitle">경비지도사 기출문제</h1>
       <p class="exam-subtitle" id="examSubtitle"></p>
       <p class="exam-meta" id="examMeta"></p>
+      <div class="exam-complete-banner hidden" id="examCompleteBanner" role="status"></div>
     </header>
+
+    <section class="exam-history-section" id="examHistorySection" aria-label="풀이 기록">
+      <h2 class="exam-history-heading">풀이 기록</h2>
+      <div id="examHistory"></div>
+    </section>
 
     <main class="exam-main" id="examList"></main>
   </div>
@@ -36,6 +42,7 @@
 
   <div class="toast hidden" id="toast"></div>
 
+  <script src="exam-history.js"></script>
   <script src="exam.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
