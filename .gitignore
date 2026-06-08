@@ -15,3 +15,8 @@ android/*.aab
 
 # Built APK (download from GitHub Releases)
 dist/
+
+# Node / PDF source
+node_modules/
+*.pdf
+package-lock.json

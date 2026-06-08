@@ -487,7 +487,7 @@ body {
 .exam-main {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 28px;
   padding-bottom: 24px;
 }
 
@@ -518,25 +518,128 @@ body {
 
 .exam-question-text {
   font-size: 0.95rem;
+  font-weight: 700;
   line-height: 1.75;
   word-break: keep-all;
   margin-bottom: 12px;
 }
 
 .exam-options {
-  list-style: none;
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.exam-options li {
+.exam-option-btn {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
   font-size: 0.92rem;
   line-height: 1.65;
   word-break: keep-all;
-  padding: 8px 10px;
+  padding: 10px 12px;
   background: #faf6f0;
-  border-radius: 8px;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  color: var(--text);
+}
+
+.exam-option-btn:active:not(:disabled) {
+  transform: scale(0.99);
+}
+
+.exam-option-btn:disabled {
+  cursor: default;
+}
+
+.exam-option-btn.is-correct {
+  background: #e8f5e9;
+  border-color: #43a047;
+}
+
+.exam-option-btn.is-wrong {
+  background: #ffebee;
+  border-color: #e53935;
+}
+
+.exam-option-label {
+  flex-shrink: 0;
+  font-weight: 700;
+  color: var(--accent);
+  min-width: 1.2em;
+}
+
+.exam-option-text {
+  flex: 1;
+}
+
+.exam-result-banner {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.exam-result-banner.exam-result-correct {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.exam-result-banner.exam-result-wrong {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.exam-explanation-panel {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.exam-explanation-heading {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.exam-note {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  background: #faf6f0;
+  border-radius: 10px;
+  border-left: 3px solid var(--border);
+}
+
+.exam-note-correct {
+  background: #fff8f3;
+  border-left-color: var(--accent);
+}
+
+.exam-note-label {
+  flex-shrink: 0;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--accent);
+}
+
+.exam-note-text {
+  font-size: 0.88rem;
+  line-height: 1.65;
+  word-break: keep-all;
+  color: var(--text);
 }
 
 .exam-error {

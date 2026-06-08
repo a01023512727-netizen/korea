@@ -1,0 +1,21 @@
+{
+  "name": "koreamunbub",
+  "version": "1.0.0",
+  "description": "Google 스프레드시트와 **자동 연동**되는 한자 암기 웹 페이지입니다.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/a01023512727-netizen/korea.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/a01023512727-netizen/korea/issues"
+  },
+  "homepage": "https://github.com/a01023512727-netizen/korea#readme"
+}
