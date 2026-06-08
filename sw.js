@@ -1,11 +1,15 @@
-const CACHE_NAME = 'hanja-memo-v1';
+const CACHE_NAME = 'hanja-memo-v2';
 const SHELL = [
   './',
   './index.html',
+  './japanese.html',
+  './exam.html',
   './styles.css',
   './app.js',
+  './exam.js',
   './config.js',
   './sheets.js',
+  './exam-data.json',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',

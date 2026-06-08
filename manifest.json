@@ -1,7 +1,7 @@
 {
-  "name": "한자 암기 노트",
-  "short_name": "한자노트",
-  "description": "Google 시트 연동 한자 암기 카드",
+  "name": "학습 메뉴",
+  "short_name": "학습메뉴",
+  "description": "일본어 한자 암기 · 경비지도사 기출문제",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

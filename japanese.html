@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#c45c26">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="한자노트">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <title>한자 암기 노트</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app">
+    <a class="back-link" href="./">← 메뉴</a>
+    <header class="header">
+      <p class="counter" id="progressText">0 / 0</p>
+      <div class="group-toolbar hidden" id="groupToolbar">
+        <label class="group-label" for="groupSelect">그룹</label>
+        <select class="group-select" id="groupSelect" aria-label="그룹 선택">
+          <option value="all">전체</option>
+        </select>
+      </div>
+      <div class="mode-toolbar">
+        <div class="mode-buttons" id="modeButtons">
+          <button class="btn btn-mode active" type="button" data-mode="hanja">한자 보기</button>
+          <button class="btn btn-mode" type="button" data-mode="hangul">한글 보기</button>
+          <button class="btn btn-mode" type="button" data-mode="meaning">뜻 보기</button>
+        </div>
+        <button class="btn btn-shuffle" id="shuffleBtn" type="button">섞기</button>
+      </div>
+    </header>
+
+    <main class="main">
+      <section class="card-mode" id="cardMode">
+        <div class="card-container">
+          <div class="card" id="flashcard">
+            <span class="card-number" id="cardNumber"></span>
+
+            <div class="card-question" id="questionArea"></div>
+
+            <div class="card-answer hidden" id="answerArea">
+              <p class="answer-hanja" id="answerHanja"></p>
+              <p class="answer-hangul" id="answerHangul"></p>
+              <div class="answer-meanings">
+                <div class="answer-row" id="answerMeaningRow">
+                  <span class="answer-label">뜻</span>
+                  <p class="answer-text" id="answerMeaning"></p>
+                </div>
+                <div class="answer-row hidden" id="answerMeaning2Row">
+                  <span class="answer-label">뜻2</span>
+                  <p class="answer-text" id="answerMeaning2"></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <nav class="card-nav">
+          <button class="btn btn-nav" id="prevBtn" type="button">← 이전</button>
+          <button class="btn btn-nav" id="nextBtn" type="button">다음 →</button>
+        </nav>
+
+        <button class="btn btn-reveal" id="revealBtn" type="button">정답 보기</button>
+      </section>
+    </main>
+  </div>
+
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+  </div>
+
+  <div class="toast hidden" id="toast"></div>
+
+  <script src="config.js"></script>
+  <script src="sheets.js"></script>
+  <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>
