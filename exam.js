@@ -20,6 +20,93 @@ function stripOptionPrefix(text) {
   return text.replace(/^[①②③④]\s*/, '');
 }
 
+function extractCorrectExpression(correctNote) {
+  const body = correctNote.replace(/^정답\.\s*/, '').trim();
+  const splitMarkers = [
+    '라는 설명은',
+    '한다는 설명은',
+    '는 설명은',
+    '은 설명은',
+    '는 틀렸',
+    '은 틀렸',
+    '는 옳지 않',
+    '은 옳지 않',
+    '는 사실이 아니',
+  ];
+
+  for (const marker of splitMarkers) {
+    const idx = body.indexOf(marker);
+    if (idx > 12) {
+      const statement = body.slice(0, idx).trim();
+      if (statement) return statement.endsWith('.') ? statement : `${statement}.`;
+    }
+  }
+
+  return body;
+}
+
+function formatExplanationNote(note, optionNum, meta) {
+  const correctNote = meta.notes[meta.answer - 1];
+  const correctExpr = extractCorrectExpression(correctNote);
+  const isAnswer = optionNum === meta.answer;
+
+  if (isAnswer) {
+    const body = note.replace(/^정답\.\s*/, '').trim();
+    return {
+      reason: body,
+      correct: correctExpr,
+      isInvertedCorrect: false,
+    };
+  }
+
+  const why = note.replace(/^오답\.\s*/, '').trim();
+  const isActuallyCorrectOption = /옳은 설명|옳다\.?$|사실이다|해당한다\.?$/.test(why);
+
+  if (isActuallyCorrectOption) {
+    return {
+      reason: '이 선택지는 법적으로 올바른 설명입니다. 이 문제는 「옳지 않은 것」을 고르는 문제입니다.',
+      correct: correctExpr,
+      isInvertedCorrect: true,
+    };
+  }
+
+  const inlineFix = why.match(/이 아니라\s*(.+?)\.?$/);
+  if (inlineFix) {
+    return {
+      reason: why.replace(inlineFix[0], '').trim().replace(/\.$/, '') || '제시된 숫자·내용이 법률 규정과 다릅니다.',
+      correct: inlineFix[1].endsWith('.') ? inlineFix[1] : `${inlineFix[1]}.`,
+      isInvertedCorrect: false,
+    };
+  }
+
+  if (/틀렸|옳지 않|해당하지 않|포함되지 않|아니다/.test(why)) {
+    return {
+      reason: why,
+      correct: correctExpr,
+      isInvertedCorrect: false,
+    };
+  }
+
+  return {
+    reason: why,
+    correct: correctExpr,
+    isInvertedCorrect: false,
+  };
+}
+
+function renderExplanationBody(container, formatted) {
+  const reason = document.createElement('p');
+  reason.className = 'exam-note-reason';
+  reason.innerHTML = `<span class="exam-note-tag">틀린 이유</span>${formatted.reason}`;
+
+  const correct = document.createElement('p');
+  correct.className = 'exam-note-correct-expr';
+  correct.innerHTML = `<span class="exam-note-tag">올바른 표현</span>${formatted.correct}`;
+
+  container.appendChild(reason);
+  container.appendChild(correct);
+}
+
 function renderExam(data, answersMap) {
   examTitle.textContent = data.title;
   examSubtitle.textContent = data.subtitle || '';
@@ -121,15 +208,28 @@ function handleAnswer(article, meta, selected, resultBanner, explanationPanel, o
     const item = document.createElement('div');
     const optionNum = idx + 1;
     const isAnswer = optionNum === correct;
-    item.className = `exam-note${isAnswer ? ' exam-note-correct' : ''}`;
+    const isSelectedWrong = optionNum === selected && !isCorrect;
+    item.className = `exam-note${isAnswer ? ' exam-note-correct' : ''}${isSelectedWrong ? ' exam-note-selected' : ''}`;
 
     const label = document.createElement('span');
     label.className = 'exam-note-label';
     label.textContent = ['①', '②', '③', '④'][idx];
 
-    const body = document.createElement('p');
-    body.className = 'exam-note-text';
-    body.textContent = note;
+    const body = document.createElement('div');
+    body.className = 'exam-note-body';
+
+    if (isAnswer) {
+      const heading = document.createElement('p');
+      heading.className = 'exam-note-tag-line';
+      heading.innerHTML = '<span class="exam-note-tag exam-note-tag-answer">정답</span>';
+      const text = document.createElement('p');
+      text.className = 'exam-note-text';
+      text.textContent = formatExplanationNote(note, optionNum, meta).correct;
+      body.appendChild(heading);
+      body.appendChild(text);
+    } else {
+      renderExplanationBody(body, formatExplanationNote(note, optionNum, meta));
+    }
 
     item.appendChild(label);
     item.appendChild(body);

@@ -635,10 +635,62 @@ body {
   color: var(--accent);
 }
 
+.exam-note-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.exam-note-selected {
+  background: #fdecea;
+  border-left-color: #c0392b;
+}
+
+.exam-note-tag-line {
+  margin-bottom: 2px;
+}
+
+.exam-note-tag {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  margin-right: 6px;
+  background: #f0ebe3;
+  color: var(--text-muted);
+}
+
+.exam-note-tag-answer {
+  background: #fff3eb;
+  color: var(--accent);
+}
+
+.exam-note-reason,
+.exam-note-correct-expr,
 .exam-note-text {
   font-size: 0.88rem;
   line-height: 1.65;
   word-break: keep-all;
+}
+
+.exam-note-correct-expr {
+  color: var(--known);
+  font-weight: 500;
+}
+
+.exam-note-reason .exam-note-tag {
+  background: #fdecea;
+  color: #b33;
+}
+
+.exam-note-correct-expr .exam-note-tag {
+  background: #e8f5ea;
+  color: var(--known);
+}
+
+.exam-note-text {
   color: var(--text);
 }
 
