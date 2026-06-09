@@ -1,11 +1,19 @@
 const EXAM_HISTORY_KEY = 'korea-exam-history-v1';
-const EXAM_ID = 'exam-27-1';
+
+function normalizeExamId(examId) {
+  if (examId === 'exam-27-1') return '27-1';
+  return examId;
+}
 
 function loadExamHistory() {
   try {
     const raw = localStorage.getItem(EXAM_HISTORY_KEY);
     const list = raw ? JSON.parse(raw) : [];
-    return Array.isArray(list) ? list : [];
+    if (!Array.isArray(list)) return [];
+    return list.map((entry) => ({
+      ...entry,
+      examId: normalizeExamId(entry.examId),
+    }));
   } catch {
     return [];
   }
@@ -15,7 +23,7 @@ function saveExamHistoryEntry(entry) {
   const history = loadExamHistory();
   history.unshift({
     id: entry.id || Date.now(),
-    examId: entry.examId || EXAM_ID,
+    examId: entry.examId || '27-1',
     title: entry.title || '',
     completedAt: entry.completedAt || new Date().toISOString(),
     correct: entry.correct,
@@ -67,7 +75,8 @@ function renderExamHistoryList(container, options = {}) {
 
     const detail = document.createElement('span');
     detail.className = 'exam-history-detail';
-    detail.textContent = `${score}점 · ${entry.correct}개 맞음 / ${entry.total}문항`;
+    const label = entry.title ? `${entry.title} · ` : '';
+    detail.textContent = `${label}${score}점 · ${entry.correct}개 맞음 / ${entry.total}문항`;
 
     li.appendChild(date);
     li.appendChild(detail);

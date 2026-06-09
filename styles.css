@@ -562,6 +562,15 @@ body {
   margin-bottom: 10px;
 }
 
+.exam-select-app {
+  justify-content: flex-start;
+  padding-top: 8px;
+}
+
+.exam-select-header {
+  margin-bottom: 8px;
+}
+
 .exam-main {
   display: flex;
   flex-direction: column;

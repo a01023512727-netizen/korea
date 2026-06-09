@@ -1,0 +1,66 @@
+{
+  "rounds": [
+    {
+      "id": 1,
+      "label": "1차",
+      "desc": "법학개론 · 민간경비론 (80문항)"
+    },
+    {
+      "id": 2,
+      "label": "2차",
+      "desc": "경비업법 + 선택과목 (80문항)"
+    }
+  ],
+  "electives": [
+    {
+      "id": "kyungho",
+      "label": "경호학"
+    }
+  ],
+  "exams": [
+    {
+      "id": "27-1",
+      "round": 1,
+      "session": 27,
+      "year": 2025,
+      "label": "제27회",
+      "title": "제27회 일반경비지도사 1차 시험 (A형)",
+      "subtitle": "1차 1교시 · 일반경비 (법학개론 + 민간경비론)",
+      "elective": null,
+      "questionCount": 80
+    },
+    {
+      "id": "27-2-kyungho",
+      "round": 2,
+      "session": 27,
+      "year": 2025,
+      "label": "제27회",
+      "title": "제27회 일반경비지도사 2차 시험 (A형 · 경호학)",
+      "subtitle": "2차 1교시 · 경비업법 + 경호학",
+      "elective": "경호학",
+      "questionCount": 80
+    },
+    {
+      "id": "26-1",
+      "round": 1,
+      "session": 26,
+      "year": 2024,
+      "label": "제26회",
+      "title": "제26회 일반경비지도사 1차 시험 (A형)",
+      "subtitle": "1차 1교시 · 일반경비 (법학개론 + 민간경비론)",
+      "elective": null,
+      "questionCount": 80
+    },
+    {
+      "id": "26-2-kyungho",
+      "round": 2,
+      "session": 26,
+      "year": 2024,
+      "label": "제26회",
+      "title": "제26회 일반경비지도사 2차 시험 (A형 · 경호학)",
+      "subtitle": "2차 1교시 · 경비업법 + 경호학",
+      "elective": "경호학",
+      "questionCount": 80
+    }
+  ]
+}

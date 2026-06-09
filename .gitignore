@@ -20,3 +20,10 @@ dist/
 node_modules/
 *.pdf
 package-lock.json
+
+# Local PDF text dumps / scraped assets
+scripts/pdf-dumps/
+scripts/gunsys*.html
+scripts/cbt-*.html
+scripts/answer-keys/*.jpg
+scripts/answer-keys/*.pdf

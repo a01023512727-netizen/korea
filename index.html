@@ -34,7 +34,7 @@
         <span class="menu-card-arrow" aria-hidden="true">→</span>
       </a>
 
-      <a class="menu-card" href="exam.html">
+      <a class="menu-card" href="exam-select.html">
         <span class="menu-card-icon menu-card-icon-exam" aria-hidden="true">試</span>
         <span class="menu-card-body">
           <span class="menu-card-title">경비지도사 기출문제</span>
@@ -57,8 +57,7 @@
       const container = document.getElementById('menuExamHistory');
       if (!section || !container) return;
       const count = renderExamHistoryList(container, {
-        limit: 5,
-        examId: EXAM_ID,
+        limit: 8,
       });
       if (count > 0) section.classList.remove('hidden');
     })();

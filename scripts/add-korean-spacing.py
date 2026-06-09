@@ -5,7 +5,7 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-DATA_PATH = ROOT / "exam-data.json"
+DEFAULT_DATA_PATH = ROOT / "exam-data.json"
 
 OPTION_PREFIX = re.compile(r"^([①②③④])")
 MARKER_PREFIX = re.compile(r"^([ㄱㄴㄷㄹㅁㅂ]:)")
@@ -102,13 +102,15 @@ def process_exam(data: dict, kiwi) -> dict:
 
 
 def main() -> None:
+    import sys
     from kiwipiepy import Kiwi
 
+    data_path = Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_DATA_PATH
     kiwi = Kiwi()
-    data = json.loads(DATA_PATH.read_text(encoding="utf-8"))
+    data = json.loads(data_path.read_text(encoding="utf-8"))
     data = process_exam(data, kiwi)
-    DATA_PATH.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"Updated spacing in {DATA_PATH}")
+    data_path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"Updated spacing in {data_path}")
 
 
 if __name__ == "__main__":

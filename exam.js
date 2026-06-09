@@ -7,7 +7,10 @@ const examList = document.getElementById('examList');
 const examHistoryEl = document.getElementById('examHistory');
 const examCompleteBanner = document.getElementById('examCompleteBanner');
 
+const examId = new URLSearchParams(window.location.search).get('id') || '27-1';
+
 let examState = {
+  examId,
   total: 0,
   answered: 0,
   correct: 0,
@@ -105,8 +108,8 @@ function updateExamProgress() {
 function renderExamHistoryPanel() {
   if (!examHistoryEl) return;
   renderExamHistoryList(examHistoryEl, {
-    examId: EXAM_ID,
-    emptyText: '아직 완료한 풀이 기록이 없습니다. 80문항을 모두 풀면 이 기기에 저장됩니다.',
+    examId,
+    emptyText: '아직 완료한 풀이 기록이 없습니다. 모든 문항을 풀면 이 기기에 저장됩니다.',
   });
 }
 
@@ -127,6 +130,7 @@ function recordAnswer(questionNumber, isCorrect) {
 
   examState.saved = true;
   const entry = saveExamHistoryEntry({
+    examId: examState.examId,
     title: examState.title,
     correct: examState.correct,
     total: examState.total,
@@ -137,6 +141,7 @@ function recordAnswer(questionNumber, isCorrect) {
 
 function renderExam(data, answersMap) {
   examState = {
+    examId,
     total: data.questions.length,
     answered: 0,
     correct: 0,
@@ -281,9 +286,10 @@ function handleAnswer(article, meta, selected, resultBanner, explanationPanel, o
 async function init() {
   loadingOverlay.classList.remove('hidden');
   try {
+    const base = `./exams/${examId}`;
     const [examRes, answersRes] = await Promise.all([
-      fetch('./exam-data.json'),
-      fetch('./exam-answers.json'),
+      fetch(`${base}/exam-data.json`),
+      fetch(`${base}/exam-answers.json`),
     ]);
     if (!examRes.ok) throw new Error('기출 데이터를 불러오지 못했습니다.');
     if (!answersRes.ok) throw new Error('정답 데이터를 불러오지 못했습니다.');
