@@ -61,6 +61,17 @@
       "subtitle": "2차 1교시 · 경비업법 + 경호학",
       "elective": "경호학",
       "questionCount": 80
+    },
+    {
+      "id": "25-1",
+      "round": 1,
+      "session": 25,
+      "year": 2023,
+      "label": "제25회",
+      "title": "제25회 일반경비지도사 1차 시험 (A형)",
+      "subtitle": "1차 1교시 · 일반경비 (법학개론 + 민간경비론)",
+      "elective": null,
+      "questionCount": 80
     }
   ]
 }
