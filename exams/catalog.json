@@ -72,6 +72,17 @@
       "subtitle": "1차 1교시 · 일반경비 (법학개론 + 민간경비론)",
       "elective": null,
       "questionCount": 80
+    },
+    {
+      "id": "24-1",
+      "round": 1,
+      "session": 24,
+      "year": 2022,
+      "label": "제24회",
+      "title": "제24회 일반경비지도사 1차 시험 (A형)",
+      "subtitle": "1차 1교시 · 일반경비 (법학개론 + 민간경비론)",
+      "elective": null,
+      "questionCount": 80
     }
   ]
 }

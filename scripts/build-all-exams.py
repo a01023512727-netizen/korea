@@ -20,6 +20,21 @@ EXAM_SPECS = [
         "copy_from_root": True,
     },
     {
+        "id": "24-1",
+        "dump": DUMPS / "2022년 제24회 일반경비지도사 1차_ 시험지.txt",
+        "meta": {
+            "title": "제24회 일반경비지도사 1차 시험 (A형)",
+            "subtitle": "1차 1교시 · 일반경비 (법학개론 + 민간경비론)",
+            "source": "2022년 제24회 일반경비지도사 1차_ 시험지.pdf",
+            "examLabel": "제24회 일반경비지도사 1차 A형",
+            "round": 1,
+            "session": 24,
+            "year": 2022,
+            "elective": None,
+        },
+        "answers": KEYS / "24-1.json",
+    },
+    {
         "id": "25-1",
         "dump": DUMPS / "2023년 1교시 시험지(일반경비지도사).txt",
         "meta": {
