@@ -1,3 +1,51 @@
+const GROUP_SIZE = 50;
+
+function findColumns(header) {
+  const normalized = header.map(h => h.replace(/^\uFEFF/, '').trim().toLowerCase());
+
+  const find = (...names) => {
+    for (const name of names) {
+      const idx = normalized.findIndex(h => h.includes(name));
+      if (idx !== -1) return idx;
+    }
+    return -1;
+  };
+
+  const meaning2 = normalized.findIndex(h => h === '뜻2' || h.endsWith('뜻2'));
+  const meaning = normalized.findIndex(h =>
+    h === '뜻' || (h.includes('뜻') && h !== '뜻2' && !h.endsWith('뜻2'))
+  );
+
+  const group = find('그룹', 'group');
+
+  return {
+    group: group !== -1 ? group : -1,
+    number: find('번호', 'number', 'no') !== -1 ? find('번호', 'number', 'no') : 0,
+    hanja: find('한자') !== -1 ? find('한자') : 0,
+    hangul: find('한글') !== -1 ? find('한글') : 1,
+    meaning: meaning !== -1 ? meaning : 2,
+    meaning2: meaning2 !== -1 ? meaning2 : 3,
+  };
+}
+
+function computeGroupRange(indexOneBased) {
+  const start = Math.floor((indexOneBased - 1) / GROUP_SIZE) * GROUP_SIZE + 1;
+  const end = start + GROUP_SIZE - 1;
+  return `${start}~${end}`;
+}
+
+function finalizeItems(rawItems) {
+  return rawItems.map((item, i) => {
+    const num = i + 1;
+    const sheetGroup = String(item.group ?? '').trim();
+    return {
+      ...item,
+      id: String(item.id || num),
+      groupRange: sheetGroup || computeGroupRange(num),
+    };
+  });
+}
+
 function parseGvizResponse(text) {
   if (/accounts\.google\.com|Sign in/i.test(text)) {
     throw new Error('private');
@@ -24,12 +72,7 @@ function resolveColumnMap(headers) {
 
   if (hasHanja) return colMap;
 
-  const hasGroup = headers.some((h) => h.includes('그룹'));
-  if (hasGroup) {
-    return { group: 0, number: 1, hanja: 2, hangul: 3, meaning: 4, meaning2: 5 };
-  }
-
-  return { group: -1, number: 0, hanja: 1, hangul: 2, meaning: 3, meaning2: 4 };
+  return { group: -1, number: -1, hanja: 0, hangul: 1, meaning: 2, meaning2: 3 };
 }
 
 function readGroup(cols, colMap) {
@@ -40,14 +83,14 @@ function readGroup(cols, colMap) {
 function rowsToItems(headers, rows) {
   const colMap = resolveColumnMap(headers);
 
-  return rows
+  const raw = rows
     .map((cols, i) => {
       const hanja = String(cols[colMap.hanja] || '').trim();
       if (!hanja) return null;
 
       return {
         group: readGroup(cols, colMap),
-        id: String(cols[colMap.number] || i + 1).trim(),
+        id: colMap.number >= 0 ? String(cols[colMap.number] || i + 1).trim() : String(i + 1),
         hanja,
         hangul: String(cols[colMap.hangul] || '').trim(),
         meaning: String(cols[colMap.meaning] || '').trim(),
@@ -55,10 +98,12 @@ function rowsToItems(headers, rows) {
       };
     })
     .filter(Boolean);
+
+  return finalizeItems(raw);
 }
 
 function objectsToItems(objects) {
-  return objects
+  const raw = objects
     .map((row, i) => {
       const values = Object.values(row);
       if (values.every(v => !String(v).trim())) return null;
@@ -66,13 +111,16 @@ function objectsToItems(objects) {
       return {
         group: String(row['그룹'] ?? row.group ?? '').trim(),
         id: String(row['번호'] ?? row.number ?? i + 1),
-        hanja: String(row['한자'] ?? ''),
-        hangul: String(row['한글'] ?? ''),
-        meaning: String(row['뜻'] ?? ''),
-        meaning2: String(row['뜻2'] ?? ''),
+        hanja: String(row['한자'] ?? '').trim(),
+        hangul: String(row['한글'] ?? '').trim(),
+        meaning: String(row['뜻'] ?? '').trim(),
+        meaning2: String(row['뜻2'] ?? '').trim(),
       };
     })
-    .filter(Boolean);
+    .filter(Boolean)
+    .filter((item) => item.hanja);
+
+  return finalizeItems(raw);
 }
 
 async function fetchFromAppsScript(url) {

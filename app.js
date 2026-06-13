@@ -1,10 +1,11 @@
 const CACHE_KEY = 'hanja-memo-cache';
 const MODE_KEY = 'hanja-memo-mode';
-const GROUP_KEY = 'hanja-memo-group';
+
+const params = new URLSearchParams(window.location.search);
+const selectedRange = params.get('range') || 'all';
 
 let allItems = [];
 let items = [];
-let selectedGroup = 'all';
 let currentIndex = 0;
 let quizMode = 'hanja';
 let revealed = false;
@@ -12,8 +13,7 @@ let syncState = 'loading';
 
 const els = {
   progressText: document.getElementById('progressText'),
-  groupSelect: document.getElementById('groupSelect'),
-  groupToolbar: document.getElementById('groupToolbar'),
+  rangeLabel: document.getElementById('rangeLabel'),
   modeButtons: document.getElementById('modeButtons'),
   shuffleBtn: document.getElementById('shuffleBtn'),
   flashcard: document.getElementById('flashcard'),
@@ -32,102 +32,6 @@ const els = {
   toast: document.getElementById('toast'),
   loadingOverlay: document.getElementById('loadingOverlay'),
 };
-
-function findColumns(header) {
-  const normalized = header.map(h => h.replace(/^\uFEFF/, '').trim().toLowerCase());
-
-  const find = (...names) => {
-    for (const name of names) {
-      const idx = normalized.findIndex(h => h.includes(name));
-      if (idx !== -1) return idx;
-    }
-    return -1;
-  };
-
-  const meaning2 = normalized.findIndex(h => h === '뜻2' || h.endsWith('뜻2'));
-  const meaning = normalized.findIndex(h =>
-    h === '뜻' || (h.includes('뜻') && h !== '뜻2' && !h.endsWith('뜻2'))
-  );
-
-  const group = find('그룹', 'group');
-
-  return {
-    group: group !== -1 ? group : -1,
-    number: find('번호', 'number', 'no') !== -1 ? find('번호', 'number', 'no') : 0,
-    hanja: find('한자') !== -1 ? find('한자') : 1,
-    hangul: find('한글') !== -1 ? find('한글') : 2,
-    meaning: meaning !== -1 ? meaning : 3,
-    meaning2: meaning2 !== -1 ? meaning2 : 4,
-  };
-}
-
-function getUniqueGroups(sourceItems) {
-  const groups = new Set();
-  sourceItems.forEach((item) => {
-    const group = String(item.group ?? '').trim();
-    if (group) groups.add(group);
-  });
-
-  return [...groups].sort((a, b) => {
-    const numA = Number(a);
-    const numB = Number(b);
-    if (!Number.isNaN(numA) && !Number.isNaN(numB)) return numA - numB;
-    return a.localeCompare(b, 'ko');
-  });
-}
-
-function loadGroup() {
-  const saved = localStorage.getItem(GROUP_KEY);
-  if (saved) selectedGroup = saved;
-}
-
-function saveGroup() {
-  localStorage.setItem(GROUP_KEY, selectedGroup);
-}
-
-function populateGroupSelect() {
-  const groups = getUniqueGroups(allItems);
-
-  els.groupSelect.innerHTML = '';
-
-  const allOption = document.createElement('option');
-  allOption.value = 'all';
-  allOption.textContent = '전체';
-  els.groupSelect.appendChild(allOption);
-
-  groups.forEach((group) => {
-    const option = document.createElement('option');
-    option.value = group;
-    option.textContent = `그룹 ${group}`;
-    els.groupSelect.appendChild(option);
-  });
-
-  if (selectedGroup !== 'all' && !groups.includes(selectedGroup)) {
-    selectedGroup = 'all';
-    saveGroup();
-  }
-
-  els.groupSelect.value = selectedGroup;
-  els.groupToolbar.classList.toggle('hidden', groups.length === 0);
-}
-
-function applyGroupFilter() {
-  if (selectedGroup === 'all') {
-    items = [...allItems];
-  } else {
-    items = allItems.filter((item) => String(item.group) === String(selectedGroup));
-  }
-
-  currentIndex = 0;
-  setRevealed(false);
-  renderCard();
-}
-
-function setSelectedGroup(value) {
-  selectedGroup = value;
-  saveGroup();
-  applyGroupFilter();
-}
 
 function saveCache(data) {
   localStorage.setItem(CACHE_KEY, JSON.stringify({
@@ -156,6 +60,23 @@ function loadMode() {
 
 function saveMode() {
   localStorage.setItem(MODE_KEY, quizMode);
+}
+
+function updateRangeLabel() {
+  if (!els.rangeLabel) return;
+  els.rangeLabel.textContent = selectedRange === 'all' ? '전체' : selectedRange;
+}
+
+function applyRangeFilter() {
+  if (selectedRange === 'all') {
+    items = [...allItems];
+  } else {
+    items = allItems.filter((item) => item.groupRange === selectedRange);
+  }
+
+  currentIndex = 0;
+  setRevealed(false);
+  renderCard();
 }
 
 function setLoading(visible) {
@@ -226,12 +147,13 @@ function setRevealed(value) {
 function renderCard() {
   updateModeButtons();
   updateCounter();
+  updateRangeLabel();
 
   if (items.length === 0) {
     els.cardNumber.textContent = '';
     els.questionArea.innerHTML = syncState === 'loading'
       ? '<p class="question-empty">불러오는 중…</p>'
-      : '<p class="question-empty">데이터 없음</p>';
+      : '<p class="question-empty">이 그룹에 단어가 없습니다</p>';
     els.answerArea.classList.add('hidden');
     els.revealBtn.disabled = true;
     return;
@@ -280,16 +202,14 @@ async function syncFromGoogleSheet() {
   try {
     const { items: fetched, source } = await fetchFromGoogleSheet(CONFIG);
     allItems = fetched;
-    populateGroupSelect();
-    applyGroupFilter();
+    applyRangeFilter();
     saveCache({ items: fetched, source });
     syncState = 'ok';
   } catch {
     const cache = loadCache();
     if (cache?.items?.length) {
       allItems = cache.items;
-      populateGroupSelect();
-      applyGroupFilter();
+      applyRangeFilter();
       syncState = 'offline';
     } else {
       syncState = 'error';
@@ -302,13 +222,9 @@ async function syncFromGoogleSheet() {
 
 function init() {
   loadMode();
-  loadGroup();
+  updateRangeLabel();
   renderCard();
   syncFromGoogleSheet();
-
-  els.groupSelect.addEventListener('change', () => {
-    setSelectedGroup(els.groupSelect.value);
-  });
 
   els.modeButtons.addEventListener('click', (e) => {
     const btn = e.target.closest('[data-mode]');
