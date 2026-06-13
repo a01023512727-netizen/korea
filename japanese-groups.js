@@ -1,4 +1,5 @@
 const HANJA_CACHE_KEY = 'hanja-memo-cache';
+const GROUP_CHUNK = 50;
 
 const els = {
   groupList: document.getElementById('groupList'),
@@ -7,7 +8,30 @@ const els = {
   toast: document.getElementById('toast'),
 };
 
+function normalizeItems(items) {
+  if (!Array.isArray(items)) return [];
+
+  const cleaned = items
+    .map((item, i) => ({
+      id: String(item?.id || i + 1),
+      hanja: String(item?.hanja || '').trim(),
+      hangul: String(item?.hangul || '').trim(),
+      meaning: String(item?.meaning || '').trim(),
+      meaning2: String(item?.meaning2 || '').trim(),
+    }))
+    .filter((item) => item.hanja && item.hanja !== '한자');
+
+  const total = cleaned.length;
+  return cleaned.map((item, i) => {
+    const num = i + 1;
+    const start = Math.floor((num - 1) / GROUP_CHUNK) * GROUP_CHUNK + 1;
+    const end = Math.min(start + GROUP_CHUNK - 1, total);
+    return { ...item, groupRange: `${start}~${end}` };
+  });
+}
+
 function showToast(message) {
+  if (!els.toast) return;
   els.toast.textContent = message;
   els.toast.classList.remove('hidden');
   setTimeout(() => els.toast.classList.add('hidden'), 2500);
@@ -38,13 +62,10 @@ function loadCache() {
 
 function getUniqueRanges(items) {
   const map = new Map();
-
   items.forEach((item) => {
-    const range = item.groupRange;
-    if (!range) return;
-    map.set(range, (map.get(range) || 0) + 1);
+    if (!item.groupRange) return;
+    map.set(item.groupRange, (map.get(item.groupRange) || 0) + 1);
   });
-
   return [...map.entries()]
     .sort((a, b) => parseInt(a[0], 10) - parseInt(b[0], 10))
     .map(([range, count]) => ({ range, count }));
@@ -97,23 +118,25 @@ function renderGroups(items) {
   });
 
   if (els.groupSubtitle) {
-    const groupText = ranges.length === 1
-      ? `1~${items.length}`
-      : `${ranges.length}그룹`;
-    els.groupSubtitle.textContent = `총 ${items.length}개 · ${groupText}`;
+    els.groupSubtitle.textContent = ranges.length === 1
+      ? `총 ${items.length}개 · 1~${items.length}`
+      : `총 ${items.length}개 · ${ranges.length}그룹`;
   }
 }
 
-function showLoadError() {
+function showLoadError(message) {
   if (!els.groupList) return;
-  els.groupList.innerHTML = '<p class="group-empty">데이터를 불러오지 못했습니다.<br>잠시 후 다시 시도해 주세요.</p>';
+  els.groupList.innerHTML = `<p class="group-empty">${message || '데이터를 불러오지 못했습니다.'}<br>잠시 후 다시 시도해 주세요.</p>`;
 }
 
-async function syncGroups() {
+async function loadItems() {
+  if (typeof fetchFromGoogleSheet !== 'function' || typeof CONFIG === 'undefined') {
+    throw new Error('config');
+  }
   const { items, source } = await fetchFromGoogleSheet(CONFIG);
-  const normalized = ensureGroupRanges(items);
+  const normalized = normalizeItems(items);
+  if (!normalized.length) throw new Error('empty');
   saveCache({ items: normalized, source });
-  renderGroups(normalized);
   return normalized;
 }
 
@@ -122,21 +145,25 @@ async function init() {
 
   try {
     const cache = loadCache();
-    let cachedItems = cache?.items?.length ? ensureGroupRanges(cache.items) : null;
+    const cachedItems = cache?.items?.length ? normalizeItems(cache.items) : null;
 
     if (cachedItems?.length) {
       renderGroups(cachedItems);
     }
 
     try {
-      await syncGroups();
+      const items = await loadItems();
+      renderGroups(items);
     } catch {
       if (!cachedItems?.length) {
-        showLoadError();
+        showLoadError('단어를 불러오지 못했습니다.');
       } else {
         showToast('최신 데이터 동기화 실패');
       }
     }
+  } catch (err) {
+    showLoadError('화면을 불러오는 중 오류가 발생했습니다.');
+    console.error(err);
   } finally {
     setLoading(false);
   }
