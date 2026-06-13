@@ -15,7 +15,16 @@ function showToast(message) {
 }
 
 function setLoading(visible) {
+  if (!els.loadingOverlay) return;
   els.loadingOverlay.classList.toggle('hidden', !visible);
+}
+
+function saveCache(data) {
+  localStorage.setItem(CACHE_KEY, JSON.stringify({
+    items: data.items,
+    syncedAt: new Date().toISOString(),
+    source: data.source,
+  }));
 }
 
 function loadCache() {
@@ -58,6 +67,7 @@ function createGroupCard({ href, title, desc, icon }) {
 }
 
 function renderGroups(items) {
+  if (!els.groupList) return;
   els.groupList.replaceChildren();
 
   if (!items.length) {
@@ -87,23 +97,41 @@ function renderGroups(items) {
     );
   });
 
-  els.groupSubtitle.textContent = `총 ${items.length}개 · ${GROUP_SIZE}개씩 ${ranges.length}그룹`;
+  if (els.groupSubtitle) {
+    els.groupSubtitle.textContent = `총 ${items.length}개 · ${GROUP_SIZE}개씩 ${ranges.length}그룹`;
+  }
+}
+
+function showLoadError() {
+  if (!els.groupList) return;
+  els.groupList.innerHTML = '<p class="group-empty">데이터를 불러오지 못했습니다.<br>잠시 후 다시 시도해 주세요.</p>';
+}
+
+async function syncGroups() {
+  const { items, source } = await fetchFromGoogleSheet(CONFIG);
+  saveCache({ items, source });
+  renderGroups(items);
+  return items;
 }
 
 async function init() {
-  setLoading(true);
-
-  try {
-    const { items } = await fetchFromGoogleSheet(CONFIG);
-    renderGroups(items);
-  } catch {
-    const cache = loadCache();
-    if (cache?.items?.length) {
-      renderGroups(cache.items);
-      showToast('오프라인 캐시로 표시합니다');
-    } else {
-      els.groupList.innerHTML = '<p class="group-empty">데이터를 불러오지 못했습니다.</p>';
+  const cache = loadCache();
+  if (cache?.items?.length) {
+    renderGroups(cache.items);
+    setLoading(false);
+    try {
+      await syncGroups();
+    } catch {
+      showToast('최신 데이터 동기화 실패');
     }
+    return;
+  }
+
+  setLoading(true);
+  try {
+    await syncGroups();
+  } catch {
+    showLoadError();
   } finally {
     setLoading(false);
   }

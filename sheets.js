@@ -55,13 +55,22 @@ function parseGvizResponse(text) {
   if (!match) throw new Error('parse');
 
   const data = JSON.parse(match[1]);
-  const headers = data.table.cols.map(col => String(col.label || '').trim());
-  const rows = (data.table.rows || []).map(row =>
+  let headers = data.table.cols.map(col => String(col.label || '').trim());
+  let rows = (data.table.rows || []).map(row =>
     row.c.map(cell => {
       if (!cell) return '';
       return String(cell.f ?? cell.v ?? '');
     })
   );
+
+  const labelsEmpty = headers.every((h) => !h);
+  if (labelsEmpty && rows.length > 0) {
+    const first = rows[0].map((v) => String(v).trim());
+    if (first[0] === '한자' || first.includes('한자')) {
+      headers = first;
+      rows = rows.slice(1);
+    }
+  }
 
   return { headers, rows };
 }
@@ -80,13 +89,18 @@ function readGroup(cols, colMap) {
   return String(cols[colMap.group] || '').trim();
 }
 
+function isHeaderRow(hanja) {
+  const v = String(hanja || '').trim();
+  return v === '한자' || v === 'hanja';
+}
+
 function rowsToItems(headers, rows) {
   const colMap = resolveColumnMap(headers);
 
   const raw = rows
     .map((cols, i) => {
       const hanja = String(cols[colMap.hanja] || '').trim();
-      if (!hanja) return null;
+      if (!hanja || isHeaderRow(hanja)) return null;
 
       return {
         group: readGroup(cols, colMap),
@@ -123,8 +137,18 @@ function objectsToItems(objects) {
   return finalizeItems(raw);
 }
 
+async function fetchWithTimeout(url, options = {}, ms = 12000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function fetchFromAppsScript(url) {
-  const res = await fetch(url);
+  const res = await fetchWithTimeout(url);
   if (!res.ok) throw new Error('fetch');
 
   const data = await res.json();
@@ -137,7 +161,7 @@ async function fetchFromAppsScript(url) {
 
 async function fetchFromPublicSheet(sheetId, gid) {
   const jsonUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&gid=${gid}`;
-  const res = await fetch(jsonUrl);
+  const res = await fetchWithTimeout(jsonUrl);
   if (!res.ok) throw new Error('fetch');
 
   const text = await res.text();
