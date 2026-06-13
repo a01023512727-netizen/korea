@@ -34,34 +34,9 @@
         <span class="menu-card-arrow" aria-hidden="true">→</span>
       </a>
 
-      <a class="menu-card" href="exam-select.html">
-        <span class="menu-card-icon menu-card-icon-exam" aria-hidden="true">試</span>
-        <span class="menu-card-body">
-          <span class="menu-card-title">경비지도사 기출문제</span>
-          <span class="menu-card-desc">제27회 1차 일반경비 80문항</span>
-        </span>
-        <span class="menu-card-arrow" aria-hidden="true">→</span>
-      </a>
     </nav>
-
-    <section class="menu-history-section hidden" id="menuExamHistorySection" aria-label="기출 풀이 기록">
-      <h2 class="menu-history-heading">기출 풀이 기록</h2>
-      <div id="menuExamHistory"></div>
-    </section>
   </div>
 
-  <script src="exam-history.js"></script>
-  <script>
-    (function initMenuExamHistory() {
-      const section = document.getElementById('menuExamHistorySection');
-      const container = document.getElementById('menuExamHistory');
-      if (!section || !container) return;
-      const count = renderExamHistoryList(container, {
-        limit: 8,
-      });
-      if (count > 0) section.classList.remove('hidden');
-    })();
-  </script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
