@@ -9,6 +9,9 @@ const els = {
 };
 
 function normalizeItems(items) {
+  if (typeof normalizeSheetItems === 'function') {
+    return normalizeSheetItems(items);
+  }
   if (!Array.isArray(items)) return [];
 
   const cleaned = items
@@ -26,7 +29,7 @@ function normalizeItems(items) {
     const num = i + 1;
     const start = Math.floor((num - 1) / GROUP_CHUNK) * GROUP_CHUNK + 1;
     const end = Math.min(start + GROUP_CHUNK - 1, total);
-    return { ...item, groupRange: `${start}~${end}` };
+    return { ...item, id: String(num), groupRange: `${start}~${end}` };
   });
 }
 

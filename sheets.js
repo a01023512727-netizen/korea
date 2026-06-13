@@ -48,13 +48,28 @@ function finalizeItems(rawItems) {
 }
 
 function ensureGroupRanges(items) {
-  if (!Array.isArray(items) || !items.length) return [];
-  const total = items.length;
-  return items.map((item, i) => {
+  return normalizeSheetItems(items);
+}
+
+function normalizeSheetItems(items) {
+  if (!Array.isArray(items)) return [];
+
+  const cleaned = items
+    .map((item, i) => ({
+      id: String(item?.id || i + 1),
+      hanja: String(item?.hanja || '').trim(),
+      hangul: String(item?.hangul || '').trim(),
+      meaning: String(item?.meaning || '').trim(),
+      meaning2: String(item?.meaning2 || '').trim(),
+    }))
+    .filter((item) => item.hanja && item.hanja !== '한자');
+
+  const total = cleaned.length;
+  return cleaned.map((item, i) => {
     const num = i + 1;
     return {
       ...item,
-      id: String(item.id || num),
+      id: String(num),
       groupRange: computeGroupRange(num, total),
     };
   });

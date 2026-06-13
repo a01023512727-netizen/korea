@@ -2,7 +2,7 @@ const CACHE_KEY = 'hanja-memo-cache';
 const MODE_KEY = 'hanja-memo-mode';
 
 const params = new URLSearchParams(window.location.search);
-const selectedRange = params.get('range') || 'all';
+const selectedRange = decodeURIComponent(params.get('range') || 'all');
 
 let allItems = [];
 let items = [];
@@ -67,11 +67,32 @@ function updateRangeLabel() {
   els.rangeLabel.textContent = selectedRange === 'all' ? '전체' : selectedRange;
 }
 
+function normalizeAllItems(rawItems) {
+  if (typeof normalizeSheetItems === 'function') {
+    return normalizeSheetItems(rawItems);
+  }
+  if (typeof ensureGroupRanges === 'function') {
+    return ensureGroupRanges(rawItems);
+  }
+  return Array.isArray(rawItems) ? rawItems : [];
+}
+
+function parseRangeParam(range) {
+  if (range === 'all') return null;
+  const match = String(range).match(/^(\d+)~(\d+)$/);
+  if (!match) return null;
+  return { start: Number(match[1]), end: Number(match[2]) };
+}
+
 function applyRangeFilter() {
-  if (selectedRange === 'all') {
+  const parsed = parseRangeParam(selectedRange);
+  if (!parsed) {
     items = [...allItems];
   } else {
-    items = allItems.filter((item) => item.groupRange === selectedRange);
+    items = allItems.filter((item, i) => {
+      const num = Number(item.id) || (i + 1);
+      return num >= parsed.start && num <= parsed.end;
+    });
   }
 
   currentIndex = 0;
@@ -201,18 +222,14 @@ async function syncFromGoogleSheet() {
 
   try {
     const { items: fetched, source } = await fetchFromGoogleSheet(CONFIG);
-    allItems = typeof ensureGroupRanges === 'function'
-      ? ensureGroupRanges(fetched)
-      : fetched;
+    allItems = normalizeAllItems(fetched);
     applyRangeFilter();
-    saveCache({ items: fetched, source });
+    saveCache({ items: allItems, source });
     syncState = 'ok';
   } catch {
     const cache = loadCache();
     if (cache?.items?.length) {
-      allItems = typeof ensureGroupRanges === 'function'
-        ? ensureGroupRanges(cache.items)
-        : cache.items;
+      allItems = normalizeAllItems(cache.items);
       applyRangeFilter();
       syncState = 'offline';
     } else {
