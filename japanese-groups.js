@@ -1,5 +1,4 @@
-const CACHE_KEY = 'hanja-memo-cache';
-const GROUP_SIZE = 50;
+const HANJA_CACHE_KEY = 'hanja-memo-cache';
 
 const els = {
   groupList: document.getElementById('groupList'),
@@ -20,7 +19,7 @@ function setLoading(visible) {
 }
 
 function saveCache(data) {
-  localStorage.setItem(CACHE_KEY, JSON.stringify({
+  localStorage.setItem(HANJA_CACHE_KEY, JSON.stringify({
     items: data.items,
     syncedAt: new Date().toISOString(),
     source: data.source,
@@ -29,7 +28,7 @@ function saveCache(data) {
 
 function loadCache() {
   try {
-    const saved = localStorage.getItem(CACHE_KEY);
+    const saved = localStorage.getItem(HANJA_CACHE_KEY);
     if (!saved) return null;
     return JSON.parse(saved);
   } catch {
@@ -98,7 +97,10 @@ function renderGroups(items) {
   });
 
   if (els.groupSubtitle) {
-    els.groupSubtitle.textContent = `총 ${items.length}개 · ${GROUP_SIZE}개씩 ${ranges.length}그룹`;
+    const groupText = ranges.length === 1
+      ? `1~${items.length}`
+      : `${ranges.length}그룹`;
+    els.groupSubtitle.textContent = `총 ${items.length}개 · ${groupText}`;
   }
 }
 
@@ -109,29 +111,32 @@ function showLoadError() {
 
 async function syncGroups() {
   const { items, source } = await fetchFromGoogleSheet(CONFIG);
-  saveCache({ items, source });
-  renderGroups(items);
-  return items;
+  const normalized = ensureGroupRanges(items);
+  saveCache({ items: normalized, source });
+  renderGroups(normalized);
+  return normalized;
 }
 
 async function init() {
-  const cache = loadCache();
-  if (cache?.items?.length) {
-    renderGroups(cache.items);
-    setLoading(false);
+  setLoading(true);
+
+  try {
+    const cache = loadCache();
+    let cachedItems = cache?.items?.length ? ensureGroupRanges(cache.items) : null;
+
+    if (cachedItems?.length) {
+      renderGroups(cachedItems);
+    }
+
     try {
       await syncGroups();
     } catch {
-      showToast('최신 데이터 동기화 실패');
+      if (!cachedItems?.length) {
+        showLoadError();
+      } else {
+        showToast('최신 데이터 동기화 실패');
+      }
     }
-    return;
-  }
-
-  setLoading(true);
-  try {
-    await syncGroups();
-  } catch {
-    showLoadError();
   } finally {
     setLoading(false);
   }

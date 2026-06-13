@@ -201,14 +201,14 @@ async function syncFromGoogleSheet() {
 
   try {
     const { items: fetched, source } = await fetchFromGoogleSheet(CONFIG);
-    allItems = fetched;
+    allItems = ensureGroupRanges(fetched);
     applyRangeFilter();
     saveCache({ items: fetched, source });
     syncState = 'ok';
   } catch {
     const cache = loadCache();
     if (cache?.items?.length) {
-      allItems = cache.items;
+      allItems = ensureGroupRanges(cache.items);
       applyRangeFilter();
       syncState = 'offline';
     } else {

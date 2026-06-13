@@ -28,20 +28,34 @@ function findColumns(header) {
   };
 }
 
-function computeGroupRange(indexOneBased) {
+function computeGroupRange(indexOneBased, totalCount) {
   const start = Math.floor((indexOneBased - 1) / GROUP_SIZE) * GROUP_SIZE + 1;
-  const end = start + GROUP_SIZE - 1;
+  const end = Math.min(start + GROUP_SIZE - 1, totalCount);
   return `${start}~${end}`;
 }
 
 function finalizeItems(rawItems) {
+  const total = rawItems.length;
   return rawItems.map((item, i) => {
     const num = i + 1;
     const sheetGroup = String(item.group ?? '').trim();
     return {
       ...item,
       id: String(item.id || num),
-      groupRange: sheetGroup || computeGroupRange(num),
+      groupRange: sheetGroup || computeGroupRange(num, total),
+    };
+  });
+}
+
+function ensureGroupRanges(items) {
+  if (!Array.isArray(items) || !items.length) return [];
+  const total = items.length;
+  return items.map((item, i) => {
+    const num = i + 1;
+    return {
+      ...item,
+      id: String(item.id || num),
+      groupRange: computeGroupRange(num, total),
     };
   });
 }
