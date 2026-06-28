@@ -383,6 +383,16 @@ body {
   gap: 14px;
 }
 
+.ad-banner-slot {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px auto 8px;
+  min-height: 100px;
+  max-width: 100%;
+  overflow: hidden;
+}
+
 .menu-card {
   display: flex;
   align-items: center;
