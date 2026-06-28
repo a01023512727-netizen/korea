@@ -35,6 +35,8 @@
     document.querySelectorAll('[data-adfit]').forEach(mount);
   }
 
+  window.AdFit = { mount };
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {

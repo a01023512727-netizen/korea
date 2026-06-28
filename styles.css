@@ -393,6 +393,62 @@ body {
   overflow: hidden;
 }
 
+.ad-gate-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(24px + var(--safe-top)) 16px calc(24px + var(--safe-bottom));
+  background: rgba(44, 36, 22, 0.78);
+}
+
+.ad-gate-overlay.hidden {
+  display: none;
+}
+
+.ad-gate-modal {
+  width: min(100%, 380px);
+  padding: 24px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+
+.ad-gate-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.ad-gate-desc {
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--text-muted);
+  margin-bottom: 18px;
+}
+
+.ad-gate-ad {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100px;
+  margin-bottom: 14px;
+}
+
+.ad-gate-hint {
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--accent);
+}
+
+body.ad-gate-open {
+  overflow: hidden;
+}
+
 .menu-card {
   display: flex;
   align-items: center;
