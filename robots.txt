@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://a01023512727-netizen.github.io/korea/sitemap.xml
