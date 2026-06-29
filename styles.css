@@ -435,8 +435,11 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+  width: 320px;
+  max-width: 100%;
   min-height: 100px;
-  margin-bottom: 14px;
+  margin: 0 auto 14px;
+  overflow: visible;
 }
 
 .ad-gate-hint {

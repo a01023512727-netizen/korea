@@ -26,16 +26,24 @@
     slot.appendChild(script);
   }
 
-  function refresh(unit) {
+  function destroyUnit() {
+    const api = window.adfit;
+    if (!api || typeof api.destroy !== 'function') return;
+    try {
+      api.destroy(ADFIT.unit);
+    } catch (_) {}
+  }
+
+  function displayUnit() {
     const api = window.adfit;
     if (!api) return false;
     try {
       if (typeof api.display === 'function') {
-        api.display(unit);
+        api.display(ADFIT.unit);
         return true;
       }
       if (typeof api.refresh === 'function') {
-        api.refresh(unit);
+        api.refresh(ADFIT.unit);
         return true;
       }
     } catch (_) {}
@@ -46,22 +54,28 @@
     if (!slot) return;
     if (slot.dataset.adfitMounted === '1' && !force) return;
 
+    if (force) destroyUnit();
+
     slot.dataset.adfitMounted = '1';
     slot.replaceChildren();
+    slot.appendChild(createIns());
 
-    const ins = createIns();
-    slot.appendChild(ins);
+    if (displayUnit()) return;
 
-    if (refresh(ADFIT.unit)) return;
+    loadScript(slot);
+  }
 
-    if (!slot.querySelector(`script[src="${SCRIPT_SRC}"]`)) {
-      loadScript(slot);
-    }
+  function mountWhenVisible(slot) {
+    if (!slot) return;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => mount(slot, { force: true }));
+    });
   }
 
   window.AdFit = {
     unit: ADFIT.unit,
     mount,
-    refresh: () => refresh(ADFIT.unit),
+    mountWhenVisible,
+    refresh: displayUnit,
   };
 })();
