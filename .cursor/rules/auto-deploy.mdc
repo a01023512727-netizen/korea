@@ -1,0 +1,26 @@
+---
+description: 코드 변경 후 허가 없이 자동 commit 및 GitHub Pages 배포
+alwaysApply: true
+---
+
+# 자동 배포 (koreamunbub)
+
+이 프로젝트에서 코드를 수정·추가한 뒤 작업이 끝나면 **사용자에게 묻지 말고** 바로 배포한다.
+
+## 배포 절차
+
+1. `git add` — 변경된 관련 파일만 스테이징
+2. `git commit` — 변경 목적이 드러나는 한국어/영어 메시지
+3. `git push origin main` — GitHub Pages 자동 배포
+
+## 규칙
+
+- "배포할까요?", "푸시할까요?" 등 **확인 질문 금지** — 완료 후 배포 URL만 간단히 안내
+- 커밋·푸시는 이 프로젝트에서 **항상 허용**됨
+- `.env`, credentials 등 **비밀 파일은 커밋하지 않음**
+- `git push --force`, `hard reset` 등 **파괴적 git 명령은 사용자가 명시할 때만**
+- 배포 후 서비스 워커 버전(`sw.js` CACHE_NAME)을 올렸으면 강력 새로고침 안내
+
+## 배포 URL
+
+https://a01023512727-netizen.github.io/korea/
