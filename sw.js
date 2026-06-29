@@ -1,4 +1,4 @@
-const CACHE_NAME = 'hanja-memo-v25';
+const CACHE_NAME = 'hanja-memo-v26';
 const SHELL = [
   './',
   './index.html',
