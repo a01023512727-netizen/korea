@@ -1,10 +1,11 @@
-const CACHE_NAME = 'hanja-memo-v22';
+const CACHE_NAME = 'hanja-memo-v23';
 const SHELL = [
   './',
   './index.html',
   './japanese.html',
   './japanese-study.html',
   './japanese-groups.js',
+  './exam-access.js',
   './exam-select.html',
   './exam-select.js',
   './exam.html',

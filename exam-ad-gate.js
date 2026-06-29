@@ -24,6 +24,7 @@ function openExamAdGate() {
 
   function proceed() {
     cleanup();
+    grantExamAccess();
     window.location.href = EXAM_SELECT_URL;
   }
 
