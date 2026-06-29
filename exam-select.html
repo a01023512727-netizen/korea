@@ -38,6 +38,11 @@
 
     <nav class="menu-list" id="selectList" aria-label="기출 선택"></nav>
 
+    <section class="exam-launch-history hidden" id="historySection" aria-label="이전 풀이 기록">
+      <h2 class="exam-launch-history-heading">이전 풀이 기록</h2>
+      <div id="historyList"></div>
+    </section>
+
     <aside class="ad-banner-slot" aria-label="광고">
       <ins class="kakao_ad_area" style="display:none;"
         data-ad-unit="DAN-r2zjKbTdXizADGYh"
@@ -51,6 +56,7 @@
     <div class="spinner"></div>
   </div>
 
+  <script src="exam-history.js"></script>
   <script src="exam-select.js"></script>
   <script>
     if ('serviceWorker' in navigator) {

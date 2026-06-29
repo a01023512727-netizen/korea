@@ -6,9 +6,13 @@ const examMeta = document.getElementById('examMeta');
 const examList = document.getElementById('examList');
 const examHistoryEl = document.getElementById('examHistory');
 const examCompleteBanner = document.getElementById('examCompleteBanner');
+const backLink = document.querySelector('.back-link');
 
-const examId = new URLSearchParams(window.location.search).get('id') || '27-1';
+const urlParams = new URLSearchParams(window.location.search);
+const examId = urlParams.get('id') || '27-1';
+const historyId = urlParams.get('history');
 
+let reviewMode = false;
 let examState = {
   examId,
   total: 0,
@@ -16,6 +20,7 @@ let examState = {
   correct: 0,
   title: '',
   saved: false,
+  answers: {},
 };
 
 function showToast(message) {
@@ -98,7 +103,7 @@ function renderExplanationBody(container, formatted) {
 function updateExamProgress() {
   if (!examState.total) return;
   const { answered, correct, total } = examState;
-  if (answered >= total) {
+  if (reviewMode || answered >= total) {
     examMeta.textContent = `완료 · ${correct}개 맞음 / ${total}문항 (${formatExamScore(correct, total)}점)`;
     return;
   }
@@ -110,6 +115,7 @@ function renderExamHistoryPanel() {
   renderExamHistoryList(examHistoryEl, {
     examId,
     emptyText: '아직 완료한 풀이 기록이 없습니다. 모든 문항을 풀면 이 기기에 저장됩니다.',
+    linkBuilder: (entry) => `exam.html?id=${encodeURIComponent(entry.examId)}&history=${entry.id}`,
   });
 }
 
@@ -121,12 +127,21 @@ function showCompletionBanner(entry) {
   showToast('풀이 기록이 이 기기에 저장되었습니다.');
 }
 
-function recordAnswer(questionNumber, isCorrect) {
+function showReviewBanner(entry) {
+  if (!examCompleteBanner) return;
+  const score = formatExamScore(entry.correct, entry.total);
+  examCompleteBanner.classList.remove('hidden');
+  examCompleteBanner.classList.add('exam-review-banner');
+  examCompleteBanner.textContent = `기록 보기 · ${formatExamDateTime(entry.completedAt)} · ${score}점 (${entry.correct}/${entry.total}개 맞음)`;
+}
+
+function recordAnswer(questionNumber, isCorrect, selected) {
+  examState.answers[String(questionNumber)] = selected;
   examState.answered += 1;
   if (isCorrect) examState.correct += 1;
   updateExamProgress();
 
-  if (examState.answered < examState.total || examState.saved) return;
+  if (reviewMode || examState.answered < examState.total || examState.saved) return;
 
   examState.saved = true;
   const entry = saveExamHistoryEntry({
@@ -134,9 +149,115 @@ function recordAnswer(questionNumber, isCorrect) {
     title: examState.title,
     correct: examState.correct,
     total: examState.total,
+    answers: examState.answers,
   });
   showCompletionBanner(entry[0]);
   renderExamHistoryPanel();
+}
+
+function handleAnswer(article, meta, selected, resultBanner, explanationPanel, optionsEl, questionNumber, { skipRecord = false } = {}) {
+  const correct = meta.answer;
+  const isCorrect = selected === correct;
+
+  article.classList.add('answered');
+  if (!skipRecord) {
+    recordAnswer(questionNumber, isCorrect, selected);
+  }
+
+  resultBanner.classList.remove('hidden');
+  resultBanner.classList.add(isCorrect ? 'exam-result-correct' : 'exam-result-wrong');
+  resultBanner.textContent = isCorrect
+    ? `정답입니다! (${['①', '②', '③', '④'][correct - 1]})`
+    : `오답입니다. 정답은 ${['①', '②', '③', '④'][correct - 1]}번입니다.`;
+
+  optionsEl.querySelectorAll('.exam-option-btn').forEach((btn) => {
+    const num = Number(btn.dataset.option);
+    btn.disabled = true;
+    if (num === selected) {
+      btn.classList.add('is-selected');
+    }
+    if (num === correct) {
+      btn.classList.add('is-correct');
+    }
+    if (num === selected && !isCorrect) {
+      btn.classList.add('is-wrong');
+    }
+  });
+
+  explanationPanel.classList.remove('hidden');
+  explanationPanel.replaceChildren();
+
+  const heading = document.createElement('p');
+  heading.className = 'exam-explanation-heading';
+  heading.textContent = '선택지 해설';
+  explanationPanel.appendChild(heading);
+
+  meta.notes.forEach((note, idx) => {
+    const item = document.createElement('div');
+    const optionNum = idx + 1;
+    const isAnswer = optionNum === correct;
+    const isSelectedWrong = optionNum === selected && !isCorrect;
+    item.className = `exam-note${isAnswer ? ' exam-note-correct' : ''}${isSelectedWrong ? ' exam-note-selected' : ''}`;
+
+    const label = document.createElement('span');
+    label.className = 'exam-note-label';
+    label.textContent = ['①', '②', '③', '④'][idx];
+
+    const body = document.createElement('div');
+    body.className = 'exam-note-body';
+
+    const formatted = formatExplanationNote(note, optionNum, meta);
+
+    if (formatted.type === 'answer') {
+      const tagLine = document.createElement('p');
+      tagLine.className = 'exam-note-tag-line';
+      tagLine.innerHTML = '<span class="exam-note-tag exam-note-tag-answer">정답</span>';
+      const text = document.createElement('p');
+      text.className = 'exam-note-text';
+      text.textContent = formatted.text;
+      body.appendChild(tagLine);
+      body.appendChild(text);
+    } else {
+      renderExplanationBody(body, formatted);
+    }
+
+    item.appendChild(label);
+    item.appendChild(body);
+    explanationPanel.appendChild(item);
+  });
+}
+
+function restoreHistoryAnswers(answersMap, savedAnswers) {
+  const entries = Object.entries(savedAnswers);
+  if (!entries.length) {
+    showToast('이 기록에는 저장된 선택 답안이 없습니다.');
+    return;
+  }
+
+  examState.answers = { ...savedAnswers };
+  examState.answered = 0;
+  examState.correct = 0;
+  examState.saved = true;
+
+  entries.forEach(([qNum, selected]) => {
+    const meta = answersMap[qNum];
+    const article = document.getElementById(`q${qNum}`);
+    if (!meta || !article) return;
+
+    const selectedNum = Number(selected);
+    if (!selectedNum) return;
+
+    const isCorrect = selectedNum === meta.answer;
+    examState.answered += 1;
+    if (isCorrect) examState.correct += 1;
+
+    const resultBanner = article.querySelector('.exam-result-banner');
+    const explanationPanel = article.querySelector('.exam-explanation-panel');
+    const optionsEl = article.querySelector('.exam-options');
+    handleAnswer(article, meta, selectedNum, resultBanner, explanationPanel, optionsEl, Number(qNum), { skipRecord: true });
+  });
+
+  updateExamProgress();
 }
 
 function renderExam(data, answersMap) {
@@ -146,14 +267,18 @@ function renderExam(data, answersMap) {
     answered: 0,
     correct: 0,
     title: data.title,
-    saved: false,
+    saved: reviewMode,
+    answers: {},
   };
 
   examTitle.textContent = data.title;
   examSubtitle.textContent = data.subtitle || '';
   updateExamProgress();
   renderExamHistoryPanel();
-  if (examCompleteBanner) examCompleteBanner.classList.add('hidden');
+  if (examCompleteBanner) {
+    examCompleteBanner.classList.add('hidden');
+    examCompleteBanner.classList.remove('exam-review-banner');
+  }
 
   let lastSubject = '';
   const fragment = document.createDocumentFragment();
@@ -199,7 +324,7 @@ function renderExam(data, answersMap) {
       btn.innerHTML = `<span class="exam-option-label">${opt.match(/^[①②③④]/)?.[0] || optionNum}</span><span class="exam-option-text">${stripOptionPrefix(opt)}</span>`;
 
       btn.addEventListener('click', () => {
-        if (!meta || article.classList.contains('answered')) return;
+        if (reviewMode || !meta || article.classList.contains('answered')) return;
         handleAnswer(article, meta, optionNum, resultBanner, explanationPanel, options, q.number);
       });
 
@@ -217,73 +342,25 @@ function renderExam(data, answersMap) {
   examList.replaceChildren(fragment);
 }
 
-function handleAnswer(article, meta, selected, resultBanner, explanationPanel, optionsEl, questionNumber) {
-  const correct = meta.answer;
-  const isCorrect = selected === correct;
-
-  article.classList.add('answered');
-  recordAnswer(questionNumber, isCorrect);
-  resultBanner.classList.remove('hidden');
-  resultBanner.classList.add(isCorrect ? 'exam-result-correct' : 'exam-result-wrong');
-  resultBanner.textContent = isCorrect
-    ? `정답입니다! (${['①', '②', '③', '④'][correct - 1]})`
-    : `오답입니다. 정답은 ${['①', '②', '③', '④'][correct - 1]}번입니다.`;
-
-  optionsEl.querySelectorAll('.exam-option-btn').forEach((btn) => {
-    const num = Number(btn.dataset.option);
-    btn.disabled = true;
-    if (num === correct) {
-      btn.classList.add('is-correct');
-    }
-    if (num === selected && !isCorrect) {
-      btn.classList.add('is-wrong');
-    }
-  });
-
-  explanationPanel.classList.remove('hidden');
-  explanationPanel.replaceChildren();
-
-  const heading = document.createElement('p');
-  heading.className = 'exam-explanation-heading';
-  heading.textContent = '선택지 해설';
-  explanationPanel.appendChild(heading);
-
-  meta.notes.forEach((note, idx) => {
-    const item = document.createElement('div');
-    const optionNum = idx + 1;
-    const isAnswer = optionNum === correct;
-    const isSelectedWrong = optionNum === selected && !isCorrect;
-    item.className = `exam-note${isAnswer ? ' exam-note-correct' : ''}${isSelectedWrong ? ' exam-note-selected' : ''}`;
-
-    const label = document.createElement('span');
-    label.className = 'exam-note-label';
-    label.textContent = ['①', '②', '③', '④'][idx];
-
-    const body = document.createElement('div');
-    body.className = 'exam-note-body';
-
-    const formatted = formatExplanationNote(note, optionNum, meta);
-
-    if (formatted.type === 'answer') {
-      const heading = document.createElement('p');
-      heading.className = 'exam-note-tag-line';
-      heading.innerHTML = '<span class="exam-note-tag exam-note-tag-answer">정답</span>';
-      const text = document.createElement('p');
-      text.className = 'exam-note-text';
-      text.textContent = formatted.text;
-      body.appendChild(heading);
-      body.appendChild(text);
-    } else {
-      renderExplanationBody(body, formatted);
-    }
-
-    item.appendChild(label);
-    item.appendChild(body);
-    explanationPanel.appendChild(item);
-  });
-}
-
 async function init() {
+  if (backLink) {
+    backLink.href = `exam-select.html?exam=${encodeURIComponent(examId)}`;
+    backLink.textContent = '← 풀이 선택';
+  }
+
+  let historyEntry = null;
+  if (historyId) {
+    historyEntry = getExamHistoryEntry(historyId);
+    if (!historyEntry) {
+      showToast('풀이 기록을 찾을 수 없습니다.');
+    } else if (historyEntry.examId !== examId) {
+      window.location.replace(`exam.html?id=${encodeURIComponent(historyEntry.examId)}&history=${historyEntry.id}`);
+      return;
+    } else {
+      reviewMode = true;
+    }
+  }
+
   loadingOverlay.classList.remove('hidden');
   try {
     const base = `./exams/${examId}`;
@@ -300,6 +377,11 @@ async function init() {
     if (!answersData.answers) throw new Error('정답 정보가 없습니다.');
 
     renderExam(data, answersData.answers);
+
+    if (historyEntry) {
+      showReviewBanner(historyEntry);
+      restoreHistoryAnswers(answersData.answers, historyEntry.answers);
+    }
   } catch (err) {
     showToast(err.message || '오류가 발생했습니다.');
     examList.innerHTML = '<p class="exam-error">기출문제를 불러올 수 없습니다.</p>';

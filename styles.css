@@ -603,6 +603,54 @@ body.ad-gate-open {
   line-height: 1.55;
 }
 
+.exam-history-link {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.exam-history-link:active {
+  opacity: 0.85;
+}
+
+.menu-card-new {
+  border-color: #b8dfc0;
+  background: #f4fbf5;
+}
+
+.menu-card-new .menu-card-icon {
+  background: #e8f5ea;
+  color: #2d6a3e;
+}
+
+.exam-launch-history {
+  margin-top: 20px;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.exam-launch-history.hidden {
+  display: none;
+}
+
+.exam-launch-history-heading {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.exam-review-banner {
+  background: #eef4ff;
+  border-color: #b8c9f0;
+  color: #2a4a8a;
+}
+
 .menu-history-section {
   margin-top: 8px;
   padding: 16px;
@@ -709,6 +757,11 @@ body.ad-gate-open {
 .exam-option-btn.is-wrong {
   background: #ffebee;
   border-color: #e53935;
+}
+
+.exam-option-btn.is-selected:not(.is-wrong):not(.is-correct) {
+  background: #fff8e1;
+  border-color: #f9a825;
 }
 
 .exam-option-label {

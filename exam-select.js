@@ -3,14 +3,17 @@ const selectTitle = document.getElementById('selectTitle');
 const selectSubtitle = document.getElementById('selectSubtitle');
 const selectList = document.getElementById('selectList');
 const backLink = document.getElementById('backLink');
+const historySection = document.getElementById('historySection');
+const historyList = document.getElementById('historyList');
 
 const params = new URLSearchParams(window.location.search);
 const round = params.get('round') ? Number(params.get('round')) : null;
 const elective = params.get('elective');
+const examId = params.get('exam');
 
-function createCard({ href, icon, title, desc }) {
+function createCard({ href, icon, title, desc, extraClass = '' }) {
   const a = document.createElement('a');
-  a.className = 'menu-card';
+  a.className = `menu-card${extraClass ? ` ${extraClass}` : ''}`;
   a.href = href;
   a.innerHTML = `
     <span class="menu-card-icon menu-card-icon-exam" aria-hidden="true">${icon}</span>
@@ -23,7 +26,16 @@ function createCard({ href, icon, title, desc }) {
   return a;
 }
 
+function getSessionBackHref(exam, catalog) {
+  if (exam.round === 2 && exam.elective) {
+    const electiveId = catalog.electives.find((e) => e.label === exam.elective)?.id || 'kyungho';
+    return `exam-select.html?round=2&elective=${electiveId}`;
+  }
+  return `exam-select.html?round=${exam.round}`;
+}
+
 function renderRoundStep(catalog) {
+  if (historySection) historySection.classList.add('hidden');
   selectTitle.textContent = '기출문제 선택';
   selectSubtitle.textContent = '1차 또는 2차를 선택하세요';
   backLink.href = './';
@@ -43,6 +55,7 @@ function renderRoundStep(catalog) {
 }
 
 function renderElectiveStep(catalog, roundNum) {
+  if (historySection) historySection.classList.add('hidden');
   const roundMeta = catalog.rounds.find((r) => r.id === roundNum);
   const available = catalog.exams.filter((e) => e.round === roundNum);
   const electives = [...new Set(available.map((e) => e.elective).filter(Boolean))];
@@ -72,6 +85,7 @@ function renderElectiveStep(catalog, roundNum) {
 }
 
 function renderSessionStep(catalog, roundNum, electiveId) {
+  if (historySection) historySection.classList.add('hidden');
   const roundMeta = catalog.rounds.find((r) => r.id === roundNum);
   let items = catalog.exams.filter((e) => e.round === roundNum);
 
@@ -94,13 +108,44 @@ function renderSessionStep(catalog, roundNum, electiveId) {
     const electiveSuffix = exam.elective ? ` · ${exam.elective}` : '';
     selectList.appendChild(
       createCard({
-        href: `exam.html?id=${exam.id}`,
+        href: `exam-select.html?exam=${exam.id}`,
         icon: String(exam.session),
         title: `${exam.label} (${exam.year}년)`,
         desc: `${exam.questionCount}문항${electiveSuffix}`,
       })
     );
   });
+}
+
+function renderExamLaunchStep(catalog, targetExamId) {
+  const exam = catalog.exams.find((e) => e.id === targetExamId);
+  if (!exam) {
+    selectList.innerHTML = '<p class="exam-error">시험을 찾을 수 없습니다.</p>';
+    if (historySection) historySection.classList.add('hidden');
+    return;
+  }
+
+  const electiveSuffix = exam.elective ? ` · ${exam.elective}` : '';
+  selectTitle.textContent = exam.title || `${exam.label} (${exam.year}년)`;
+  selectSubtitle.textContent = `${exam.questionCount}문항${electiveSuffix}`;
+  backLink.href = getSessionBackHref(exam, catalog);
+  backLink.textContent = '← 회차 선택';
+
+  selectList.replaceChildren();
+  selectList.appendChild(
+    createCard({
+      href: `exam.html?id=${encodeURIComponent(exam.id)}`,
+      icon: '新',
+      title: '새로 풀기',
+      desc: '처음부터 다시 풉니다',
+      extraClass: 'menu-card-new',
+    })
+  );
+
+  if (historySection && historyList) {
+    historySection.classList.remove('hidden');
+    renderExamLaunchHistory(historyList, exam.id);
+  }
 }
 
 async function init() {
@@ -110,7 +155,9 @@ async function init() {
     if (!res.ok) throw new Error('시험 목록을 불러오지 못했습니다.');
     const catalog = await res.json();
 
-    if (!round) {
+    if (examId) {
+      renderExamLaunchStep(catalog, examId);
+    } else if (!round) {
       renderRoundStep(catalog);
     } else if (round === 2 && !elective) {
       renderElectiveStep(catalog, round);
@@ -119,6 +166,7 @@ async function init() {
     }
   } catch (err) {
     selectList.innerHTML = `<p class="exam-error">${err.message}</p>`;
+    if (historySection) historySection.classList.add('hidden');
   } finally {
     loadingOverlay.classList.add('hidden');
   }
