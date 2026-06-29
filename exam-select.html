@@ -27,7 +27,13 @@
 
     <nav class="menu-list" id="selectList" aria-label="기출 선택"></nav>
 
-    <aside class="ad-banner-slot" data-adfit aria-label="광고"></aside>
+    <aside class="ad-banner-slot" aria-label="광고">
+      <ins class="kakao_ad_area" style="display:none;"
+        data-ad-unit="DAN-r2zjKbTdXizADGYh"
+        data-ad-width="320"
+        data-ad-height="100"></ins>
+      <script type="text/javascript" src="https://t1.kakaocdn.net/kas/static/ba.min.js" async charset="utf-8"></script>
+    </aside>
   </div>
 
   <div class="loading-overlay" id="loadingOverlay">
@@ -35,7 +41,6 @@
   </div>
 
   <script src="exam-select.js"></script>
-  <script src="adfit.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {

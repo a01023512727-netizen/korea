@@ -1,4 +1,4 @@
-const CACHE_NAME = 'hanja-memo-v20';
+const CACHE_NAME = 'hanja-memo-v21';
 const SHELL = [
   './',
   './index.html',
@@ -54,7 +54,12 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  if (url.hostname.includes('google.com') || url.hostname.includes('gstatic.com')) {
+  if (
+    url.hostname.includes('google.com') ||
+    url.hostname.includes('gstatic.com') ||
+    url.hostname.includes('kakaocdn.net') ||
+    url.hostname.includes('daumcdn.net')
+  ) {
     return;
   }
 

@@ -5,41 +5,63 @@
     height: 100,
   };
 
-  let scriptRequested = false;
+  const SCRIPT_SRC = 'https://t1.kakaocdn.net/kas/static/ba.min.js';
 
-  function ensureScript() {
-    if (scriptRequested) return;
-    scriptRequested = true;
-    const script = document.createElement('script');
-    script.type = 'text/javascript';
-    script.src = 'https://t1.kakaocdn.net/kas/static/ba.min.js';
-    script.async = true;
-    document.body.appendChild(script);
-  }
-
-  function mount(slot) {
-    if (!slot || slot.dataset.adfitMounted === '1') return;
-    slot.dataset.adfitMounted = '1';
-
+  function createIns() {
     const ins = document.createElement('ins');
     ins.className = 'kakao_ad_area';
     ins.style.display = 'none';
     ins.setAttribute('data-ad-unit', ADFIT.unit);
     ins.setAttribute('data-ad-width', String(ADFIT.width));
     ins.setAttribute('data-ad-height', String(ADFIT.height));
+    return ins;
+  }
+
+  function loadScript(slot) {
+    const script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = SCRIPT_SRC;
+    script.async = true;
+    script.charset = 'utf-8';
+    slot.appendChild(script);
+  }
+
+  function refresh(unit) {
+    const api = window.adfit;
+    if (!api) return false;
+    try {
+      if (typeof api.display === 'function') {
+        api.display(unit);
+        return true;
+      }
+      if (typeof api.refresh === 'function') {
+        api.refresh(unit);
+        return true;
+      }
+    } catch (_) {}
+    return false;
+  }
+
+  function mount(slot, { force = false } = {}) {
+    if (!slot) return;
+    if (slot.dataset.adfitMounted === '1' && !force) return;
+
+    slot.dataset.adfitMounted = '1';
+    slot.replaceChildren();
+
+    const ins = createIns();
     slot.appendChild(ins);
-    ensureScript();
+
+    if (refresh(ADFIT.unit)) return;
+
+    if (!slot.querySelector(`script[src="${SCRIPT_SRC}"]`)) {
+      loadScript(slot);
+    }
   }
 
-  function init() {
-    document.querySelectorAll('[data-adfit]').forEach(mount);
-  }
-
-  window.AdFit = { mount };
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
+  window.AdFit = {
+    unit: ADFIT.unit,
+    mount,
+    refresh: () => refresh(ADFIT.unit),
+  };
 })();

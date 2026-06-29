@@ -8,7 +8,7 @@ function createExamAdGate() {
     <div class="ad-gate-modal" role="dialog" aria-modal="true" aria-labelledby="adGateTitle">
       <h2 class="ad-gate-title" id="adGateTitle">기출문제 이용 안내</h2>
       <p class="ad-gate-desc">아래 광고를 한 번 눌러 확인해 주세요.<br>광고 확인 후 이 화면으로 돌아오면 기출문제로 이동합니다.</p>
-      <div class="ad-gate-ad" data-adfit></div>
+      <div class="ad-gate-ad"></div>
       <p class="ad-gate-hint">광고를 클릭해야 입장할 수 있습니다. 닫기 버튼은 없습니다.</p>
     </div>
   `;
@@ -23,8 +23,8 @@ function openExamAdGate() {
   overlay.classList.remove('hidden');
   document.body.classList.add('ad-gate-open');
 
-  const adSlot = overlay.querySelector('[data-adfit]');
-  if (window.AdFit) window.AdFit.mount(adSlot);
+  const adSlot = overlay.querySelector('.ad-gate-ad');
+  if (window.AdFit) window.AdFit.mount(adSlot, { force: true });
 
   let adEngaged = false;
 

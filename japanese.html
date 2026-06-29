@@ -28,7 +28,13 @@
 
     <nav class="menu-list" id="groupList" aria-label="한자 그룹"></nav>
 
-    <aside class="ad-banner-slot" data-adfit aria-label="광고"></aside>
+    <aside class="ad-banner-slot" aria-label="광고">
+      <ins class="kakao_ad_area" style="display:none;"
+        data-ad-unit="DAN-r2zjKbTdXizADGYh"
+        data-ad-width="320"
+        data-ad-height="100"></ins>
+      <script type="text/javascript" src="https://t1.kakaocdn.net/kas/static/ba.min.js" async charset="utf-8"></script>
+    </aside>
   </div>
 
   <div class="loading-overlay hidden" id="loadingOverlay">
@@ -40,7 +46,6 @@
   <script src="config.js"></script>
   <script src="sheets.js?v=16"></script>
   <script src="japanese-groups.js?v=16"></script>
-  <script src="adfit.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
